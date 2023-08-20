@@ -141,7 +141,7 @@
   - UUID: optional taskwarrior task uuid is allowed, but unused"
 
   (cond ((and (stringp messageID) (stringp uuid))
-         (let ((tag-changes (list (notmuch-taskwarrior-notmuch-tag))))
+         (let ((tag-changes (list (concat "+" notmuch-taskwarrior-notmuch-tag))))
            (notmuch-tag (concat "id:" messageID) tag-changes)
            (message (concat "Added tag" notmuch-taskwarrior-notmuch-tag " to message"))
            (notmuch-tree-tag-update-display tag-changes)))
