@@ -89,6 +89,7 @@
 
   (cl-remove-if-not (lambda (x) (string-match-p notmuch-taskwarrior-regex-use-tags x)) tag-list))
 
+;;;###autoload
 (defun notmuch-taskwarrior-new-task-for-mail ()
   "Create a new task with a link to current message-id."
   (interactive)
@@ -184,6 +185,7 @@
     ;; TODO: implement
     ))
 
+;;;###autoload
 (defun notmuch-taskwarrior-link-query-task ()
   "Interactively select a task to link the mail to."
 
@@ -191,11 +193,6 @@
 
   (interactive)
   )
-
-;;;###autoload
-(defun notmuch-taskwarrior-load ()
-  "Notmuch-taskwarrior loaded."
-  t)
 
 (provide 'notmuch-taskwarrior)
 ;;; notmuch-taskwarrior.el ends here
