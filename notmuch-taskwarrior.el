@@ -1,6 +1,6 @@
 ;;; notmuch-taskwarrior.el --- use taskwarrior from notmuch  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2021 erik colson
+;; Copyright (C) 2010-2023 erik colson
 
 ;;; Commentary:
 ;;; Author: erik colson <eco@ecocode.net>
