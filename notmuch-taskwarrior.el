@@ -39,9 +39,9 @@
   :group 'notmuch-taskwarrior)
 
 (defcustom notmuch-taskwarrior-always-tags '("mail")
-  "List of tags to always apply for new tasks"
+  "List of tags to always apply for new tasks."
   :type (repeat 'string)
-  :group 'notmuch-taskwarrior
+  :group 'notmuch-taskwarrior)
 
 (defcustom notmuch-taskwarrior-regex-use-tags "^[[:digit:]]\\{5\\}"
   "Use tags corresponding to this regex."
