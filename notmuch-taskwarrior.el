@@ -2,18 +2,31 @@
 
 ;; Copyright (C) 2010-2023 erik colson
 
-;;; Commentary:
 ;;; Author: erik colson <eco@ecocode.net>
 ;;; Version: 0.0.1
+;;; URL: https://www.github.com/ecocode/notmuch-taskwarrior.el
+;;; Commentary:
 
-;;; Package-Requires: notmuch
+;;; This package allows to create tasks from a notmuch buffer.  The
+;;; task will automatically have a metadata MESSAGE_ID.
+
+;;; Package-Requires: (notmuch list-utils dash)
 ;;; Code:
+
+;;;###autoload
+(defun notmuch-taskwarrior-load ()
+  "Notmuch-taskwarrior loaded."
+  t)
 
 (require 'list-utils)
 (require 'dash)
 (require 'notmuch)
 
 ;; TODO: add support to link a task to multiple mails.  Is there a limit on the length of a UDA field?
+
+(defgroup notmuch-taskwarrior nil
+  "Notmuch to taskwarrior interface"
+  :group 'notmuch-taskwarrior)
 
 (defcustom notmuch-taskwarrior-notmuch-tag "tw/task"
   "Tag added to notmuch mail when a task has been created in taskwarrior."
