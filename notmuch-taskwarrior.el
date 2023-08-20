@@ -13,11 +13,6 @@
 ;;; Package-Requires: (notmuch list-utils dash)
 ;;; Code:
 
-;;;###autoload
-(defun notmuch-taskwarrior-load ()
-  "Notmuch-taskwarrior loaded."
-  t)
-
 (require 'list-utils)
 (require 'dash)
 (require 'notmuch)
@@ -196,6 +191,11 @@
 
   (interactive)
   )
+
+;;;###autoload
+(defun notmuch-taskwarrior-load ()
+  "Notmuch-taskwarrior loaded."
+  t)
 
 (provide 'notmuch-taskwarrior)
 ;;; notmuch-taskwarrior.el ends here
