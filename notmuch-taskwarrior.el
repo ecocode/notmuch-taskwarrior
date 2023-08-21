@@ -104,8 +104,8 @@
     (if (not message-id)  ; we are not on a message.
         (message "No message selected.  No task created.")
       (progn (message "Creating task for message %s" message-id)
-             (let* ((task-text (read-from-minibuffer "Task: "))
-                    (task-project (completing-read "Project: " (notmuch-taskwarrior-get-projects) nil nil (car (notmuch-taskwarrior--filter-tags message-tags))))
+             (let* ((task-project (completing-read "Project: " (notmuch-taskwarrior-get-projects) nil nil (car (notmuch-taskwarrior--filter-tags message-tags))))
+                    (task-text (read-from-minibuffer "Task: "))
                     (task-tag (completing-read "Tag: " (notmuch-taskwarrior-get-tags) nil nil nil))
                     (task-tags (cons task-tag notmuch-taskwarrior-always-tags)))
                (notmuch-taskwarrior--add-taskwarrior-tag-to-notmuch message-id (notmuch-taskwarrior--shell-new-task task-text message-id task-project task-tags))
