@@ -13,10 +13,6 @@
 ;;; Package-Requires: (notmuch list-utils dash)
 ;;; Code:
 
-(require 'list-utils)
-(require 'dash)
-(require 'notmuch)
-
 ;; TODO: add support to link a task to multiple mails.  Is there a limit on the length of a UDA field?
 
 (defgroup notmuch-taskwarrior nil
