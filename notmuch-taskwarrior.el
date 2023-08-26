@@ -226,7 +226,7 @@
         (when (stringp task-uuid)
           (notmuch-taskwarrior--link-mail-to-task message-id task-uuid)
           (message (concat "linked message to task " message-id " " task-uuid))
-          (notmuch-tree-tag-update-display tag-changes))
+          (notmuch-tree-tag-update-display))
         )
       )
     )
