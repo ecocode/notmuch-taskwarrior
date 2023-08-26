@@ -10,7 +10,7 @@
 ;;; This package allows to create tasks from a notmuch buffer.  The
 ;;; task will automatically have a metadata MESSAGE_ID.
 
-;;; Package-Requires: (notmuch list-utils dash)
+;;; Package-Requires: (notmuch list-utils dash s)
 ;;; Code:
 
 ;; TODO: add support to link a task to multiple mails.  Is there a limit on the length of a UDA field?
@@ -19,7 +19,7 @@
   "Notmuch to taskwarrior interface"
   :group 'notmuch-taskwarrior)
 
-(defcustom notmuch-taskwarrior-notmuch-tag "tw/task"
+(defcustom notmuch-taskwarrior-notmuch-tag "tw/pending"
   "Tag added to notmuch mail when a task has been created in taskwarrior."
   :type 'string
   :group 'notmuch-taskwarrior)
@@ -63,7 +63,19 @@
 
   (let ((uuid (string-trim (shell-command-to-string (concat notmuch-taskwarrior-command " _uuid messageID:" messageID)))))
     (cond ((string-equal uuid "") nil)
-          (uuid))))
+          (t uuid))))
+
+(defun notmuch-taskwarrior--get-task-messageIDs (uuid)
+  "Retrieve task messageIDs as list from taskwarrior for task.  Return () if none found.
+
+  Arguments:
+  - UUID: task uuid"
+
+  (let* ((cmd (concat notmuch-taskwarrior-command " " (format "uuid:%s" uuid) " export"))
+         (shell-output-plist (json-parse-string (shell-command-to-string cmd) :object-type 'plist :array-type 'list ))
+         (messageIDs (plist-get (car shell-output-plist) :messageID )))
+    (cond ((string-empty-p messageIDs) '())
+          (t (split-string messageIDs ",")))))
 
 ;; (defun notmuch-taskwarrior-tags-as-string (tag-list)
 ;;   "Returns a string formatted for task add function."
@@ -85,17 +97,22 @@
 
   (cl-remove-if-not (lambda (x) (string-match-p notmuch-taskwarrior-regex-use-tags x)) tag-list))
 
-;;;###autoload
-(defun notmuch-taskwarrior-new-task-for-mail ()
-  "Create a new task with a link to current message-id."
-  (interactive)
+(defun notmuch-taskwarrior--get-messageID ()
+  "Get messageID of current message."
   (let* ((message-id
           (cond
            ((string-equal major-mode "notmuch-show-mode") (notmuch-show-get-message-id t))
            ((string-equal major-mode "notmuch-tree-mode") (notmuch-tree-get-message-id t))
            ((string-equal major-mode "notmuch-search-mode")
             (progn (message "Creating task not allowed in notmuch-search-mode.") nil))
-           (t nil)))
+           (t nil))))
+    message-id))
+
+;;;###autoload
+(defun notmuch-taskwarrior-new-task-for-mail ()
+  "Create a new task with a link to current message-id."
+  (interactive)
+  (let* ((message-id (notmuch-taskwarrior--get-messageID))
          (message-tags
           (cond
            ((string-equal major-mode "notmuch-show-mode") (notmuch-show-get-tags))
@@ -145,6 +162,7 @@
 
 (defun notmuch-taskwarrior--add-taskwarrior-uuid-to-notmuch (messageID uuid)
   "Add task uuid to the notmuch mail with messageID.
+  This is not used.
 
   Arguments:
   - MESSAGEID: notmuch message id
@@ -160,14 +178,26 @@
 (defun notmuch-taskwarrior--link-mail-to-task (messageID uuid)
   "Add messageID to task UDA field."
 
-  ;; TODO: Implement
-  )
+  ;; TODO: allow to add messageID to a list of existing messageIDs
+  ;; TODO: be sure messageID is not already linked
 
-(defun notmuch-taskwarrior-get-all-ready-tasks ()
+  (when (and (not (string-empty-p messageID)) (not (string-empty-p uuid)))
+
+    ;; retrieve messageIDs via taskwarrior as a hash
+    ;; add the uuid to the hash (no duplicates)
+    ;; use the hash in the command
+
+    (let* ((cur-task-messageID-list (notmuch-taskwarrior--get-task-messageIDs uuid))
+           (new-messageID-list (seq-uniq (cons messageID cur-task-messageID-list)))
+           (cmd (concat notmuch-taskwarrior-command " " (format "uuid:%s" uuid) " modify " (format "messageID:%s" (s-join "," new-messageID-list)) )))
+      (message cmd)
+      (shell-command-to-string cmd))))
+
+(defun notmuch-taskwarrior--get-all-ready-tasks ()
   "Return a list of all ready tasks."
 
   ;;       Retrieve using "task +READY export" -> as json
-  ;;       use fields: uuid, project, description
+  ;;       use fields: uuid, project, description, tags
 
   ;; USE AS FOLLOWS
   ;; (progn
@@ -176,9 +206,10 @@
   ;; )
 
   (let* ((tasks (json-parse-string (shell-command-to-string (concat notmuch-taskwarrior-command " " "+READY export")) :object-type 'plist :array-type 'array ))
-         (tasklines (cl-map 'array (lambda (x) (list (plist-get x :id) (list :uuid (plist-get x :uuid) :text (concat (plist-get x :project) " " (plist-get x :description))))) tasks)))
-    tasklines ; ordered array of uuid and text taskline
-    ;; TODO: implement
+         (tasklist (cl-map 'array (lambda (x) (list :uuid (plist-get x :uuid) :text (concat (format "%-35.35s" (plist-get x :project)) ": " (format "%-70.70s" (plist-get x :description)) " [" (format "%-30.30s" (string-join (plist-get x :tags) ",")) "] (" (plist-get x :uuid) ")"))) tasks))
+         (tasklines (cl-map 'list (lambda (x) (plist-get x :text)) tasklist ))
+                                        ; tasklines ; ordered array of uuid and text taskline
+      )   tasklines
     ))
 
 ;;;###autoload
@@ -188,6 +219,17 @@
   ;; TODO: Implement
 
   (interactive)
+  (let* ((message-id (notmuch-taskwarrior--get-messageID)))
+    (when (stringp message-id)
+      (let* ((task (completing-read "Task: " (notmuch-taskwarrior--get-all-ready-tasks) nil t nil))
+             (task-uuid (car (cdr (car (s-match-strings-all "\(\\([^()]+\\)\)$" task))))))
+        (when (stringp task-uuid)
+          (notmuch-taskwarrior--link-mail-to-task message-id task-uuid)
+          (message (concat "linked message to task " message-id " " task-uuid))
+          (notmuch-tree-tag-update-display tag-changes))
+        )
+      )
+    )
   )
 
 (provide 'notmuch-taskwarrior)
