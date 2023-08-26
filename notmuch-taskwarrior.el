@@ -124,7 +124,7 @@
              (let* ((task-project (completing-read "Project: " (notmuch-taskwarrior-get-projects) nil nil (car (notmuch-taskwarrior--filter-tags message-tags))))
                     (task-text (read-from-minibuffer "Task: "))
                     (task-tag (completing-read "Tag: " (notmuch-taskwarrior-get-tags) nil nil nil))
-                    (task-tags (delete nil (cons task-tag notmuch-taskwarrior-always-tags))))
+                    (task-tags (delete "" (cons task-tag notmuch-taskwarrior-always-tags))))
                (notmuch-taskwarrior--add-taskwarrior-tag-to-notmuch message-id (notmuch-taskwarrior--shell-new-task task-text message-id task-project task-tags))
                )))))
 
@@ -156,7 +156,7 @@
   (cond ((and (stringp messageID) (stringp uuid))
          (let ((tag-changes (list (concat "+" notmuch-taskwarrior-notmuch-tag))))
            (notmuch-tag (concat "id:" messageID) tag-changes)
-           (message (concat "Added tag" notmuch-taskwarrior-notmuch-tag " to message"))
+           (message (concat "Added tag " notmuch-taskwarrior-notmuch-tag " to message"))
            (notmuch-tree-tag-update-display tag-changes)))
          (t nil)))
 
