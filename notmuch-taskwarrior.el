@@ -196,7 +196,7 @@
 (defun notmuch-taskwarrior--get-all-ready-tasks ()
   "Return a list of all ready tasks."
 
-  ;;       Retrieve using "task +READY export" -> as json
+  ;;       Retrieve using "task (+READY or +PENDING or +WAITING) export" -> as json
   ;;       use fields: uuid, project, description, tags
 
   ;; USE AS FOLLOWS
@@ -205,7 +205,7 @@
   ;;   (plist-get (plist-get x 2) :text)
   ;; )
 
-  (let* ((tasks (json-parse-string (shell-command-to-string (concat notmuch-taskwarrior-command " " "+READY export")) :object-type 'plist :array-type 'array ))
+  (let* ((tasks (json-parse-string (shell-command-to-string (concat notmuch-taskwarrior-command " " "\"(+READY or +PENDING or +WAITING)\" export")) :object-type 'plist :array-type 'array ))
          (tasklist (cl-map 'array (lambda (x) (list :uuid (plist-get x :uuid) :text (concat (format "%-35.35s" (plist-get x :project)) ": " (format "%-70.70s" (plist-get x :description)) " [" (format "%-30.30s" (string-join (plist-get x :tags) ",")) "] (" (plist-get x :uuid) ")"))) tasks))
          (tasklines (cl-map 'list (lambda (x) (plist-get x :text)) tasklist ))
                                         ; tasklines ; ordered array of uuid and text taskline
