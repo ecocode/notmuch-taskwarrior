@@ -97,6 +97,7 @@
 
   (cl-remove-if-not (lambda (x) (string-match-p notmuch-taskwarrior-regex-use-tags x)) tag-list))
 
+;;;###autoload
 (defun notmuch-taskwarrior--get-messageID ()
   "Get messageID of current message."
   (let* ((message-id
@@ -219,8 +220,10 @@
   ;; TODO: Implement
 
   (interactive)
+  (message "Get current messageID")
   (let* ((message-id (notmuch-taskwarrior--get-messageID)))
     (when (stringp message-id)
+      (message "Get user task selection")
       (let* ((task (completing-read "Task: " (notmuch-taskwarrior--get-all-ready-tasks) nil t nil))
              (task-uuid (car (cdr (car (s-match-strings-all "\(\\([^()]+\\)\)$" task))))))
         (when (stringp task-uuid)
