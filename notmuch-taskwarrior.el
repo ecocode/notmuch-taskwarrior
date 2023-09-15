@@ -74,7 +74,7 @@
   (let* ((cmd (concat notmuch-taskwarrior-command " " (format "uuid:%s" uuid) " export"))
          (shell-output-plist (json-parse-string (shell-command-to-string cmd) :object-type 'plist :array-type 'list ))
          (messageIDs (plist-get (car shell-output-plist) :messageID )))
-    (cond ((string-empty-p messageIDs) '())
+    (cond ((or (not messageIDs) (string-empty-p messageIDs)) '())
           (t (split-string messageIDs ",")))))
 
 ;; (defun notmuch-taskwarrior-tags-as-string (tag-list)
